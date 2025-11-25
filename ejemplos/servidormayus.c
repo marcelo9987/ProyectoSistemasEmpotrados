@@ -31,8 +31,6 @@
 
 void manejadorDeSenhales(int senhal)
 {
-    fprintf(STDOUT, "\nCTRL^C  detectado, inicio operaciones de cierre...\n");
-
     printf("Servidor.- Finalizando la ejecución.\n\n");
 
     // exit fuerza al SO a cerrar el socket de escucha y a liberar el puerto

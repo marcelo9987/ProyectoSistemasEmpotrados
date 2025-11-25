@@ -23,8 +23,6 @@
 
 #define K_MAX_TAMANHO_LINEA 1000
 
-#defin K_TIEMPO_ESPERA_ENTRE_ENVIOS 2
-
 int main(int argc, char *argv[])
 {
     if (argc != 3)
@@ -73,7 +71,7 @@ int main(int argc, char *argv[])
         }
 
         printf("Enviado: <%s>", buffer);
-        sleep(K_TIEMPO_ESPERA_ENTRE_ENVIOS); // Esperamos 2 segundos entre envíos
+        sleep(2); // Esperamos 2 segundos entre envíos
     }
 
     // --

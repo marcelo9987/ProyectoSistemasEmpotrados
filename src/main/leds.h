@@ -17,10 +17,6 @@ Copyright (C) 2025. Marcelo Fort Muñoz y Víctor Arrollo Marquez
  */
 
 #pragma once
-
-typedef enum
-{
-    CONEXION_ESTABLECIDA, CONEXION_NO_ESTABLECIDA, TRANSMISION_EN_CURSO
-}EstadoLeds;
+#include "tipos.h"
 
 void cambiarSituacionLeds(EstadoLeds conectado);

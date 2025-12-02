@@ -16,13 +16,14 @@
 
  */
 
+
 #include "conectividad_cliente_tcp.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
 #include <arpa/inet.h>
+#include <netinet/in.h>
+#include <sys/socket.h>
 
 
 int conectar_servidor(const char* ip, uint16_t puerto)
@@ -56,7 +57,7 @@ int conectar_servidor(const char* ip, uint16_t puerto)
     return socket_fd;
 }
 
-int enviar_datos(int socket_fd, const char* datos, size_t len)
+int enviar_datos(const int socket_fd, const char* datos, const size_t len)
 {
     if (send(socket_fd, datos, len, 0) < 0)
     {

@@ -17,70 +17,72 @@ Copyright (C) 2025. Marcelo Fort Muñoz y Víctor Arrollo Marquez
  */
 
 #include "wifi_scanner.h"
+
 #include <Adafruit_ILI9341.h>
-extern Adafruit_ILI9341 tft;
+extern Adafruit_ILI9341 g_tft;
 
-Red redesDetectadas[MAX_REDES];
-int numRedesDetectadas = 0;
+Red g_redesDetectadas[K_MAX_REDES];
+int g_numRedesDetectadas = 0;
 
-void scanAndDisplay() {
-    tft.fillRect(0, 40, 320, 200, ILI9341_BLACK);
-    tft.setCursor(0, 40);
-    tft.setTextSize(2);
-    tft.setTextColor(ILI9341_GREEN, ILI9341_BLACK);
 
-    Serial.println("Scanning WiFi...");
-    tft.println("Scanning...");
+void escanearYmostrar() {
+    g_tft.fillRect(0, 40, 320, 200, ILI9341_BLACK);
+    g_tft.setCursor(0, 40);
+    g_tft.setTextSize(2);
+    g_tft.setTextColor(ILI9341_GREEN, ILI9341_BLACK);
 
-    numRedesDetectadas = WiFi.scanNetworks();
-    int n = numRedesDetectadas;
-    Serial.printf("Found %d networks\n", n);
+    Serial.println("Escaneando las wifis...");
+    g_tft.println("Escaneando...");
 
-    tft.fillRect(0, 40, 320, 200, ILI9341_BLACK);
-    tft.setCursor(0, 40);
+    g_numRedesDetectadas = WiFi.scanNetworks();
+    int numero_redes_detectadas = g_numRedesDetectadas;
+    Serial.printf("Se han encontrado %d redes\n", numero_redes_detectadas);
 
-    if (n <= 0) {
-        tft.println("No networks found");
+    g_tft.fillRect(0, 40, 320, 200, ILI9341_BLACK);
+    g_tft.setCursor(0, 40);
+
+    if (numero_redes_detectadas <= 0) {
+        g_tft.println("No se han encontrado redes.");
         return;
     }
 
-    int show = n;
-    if (show > MAX_DISPLAY) show = MAX_DISPLAY;
+    int show = numero_redes_detectadas;
+    if (show > K_MAX_DISPLAY) show = K_MAX_DISPLAY;
 
-    tft.setTextSize(1);
+    g_tft.setTextSize(1);
     for (int i = 0; i < show; i++) {
         String ssid = WiFi.SSID(i);
         int rssi = WiFi.RSSI(i);
-        if (ssid.length() > MAX_RED_SSID - 1) ssid = ssid.substring(0, MAX_RED_SSID - 1);
+        if (ssid.length() > K_MAX_RED_SSID - 1) ssid = ssid.substring(0, K_MAX_RED_SSID - 1);
 
-        strncpy(redesDetectadas[i].ssid, ssid.c_str(), MAX_RED_SSID);
-        redesDetectadas[i].rssi = rssi;
+        strncpy(g_redesDetectadas[i].ssid, ssid.c_str(), K_MAX_RED_SSID);
+        g_redesDetectadas[i].rssi = rssi;
 
-        Serial.printf("%d: %s (%d dBm)\n", i, redesDetectadas[i].ssid, rssi);
+        Serial.printf("%d: %s (%d dBm)\n", i, g_redesDetectadas[i].ssid, rssi);
 
-        tft.print(i);
-        tft.print(": ");
-        tft.print(ssid);
-        tft.print(" ");
-        tft.print(rssi);
-        tft.println("dB");
+        g_tft.print(i);
+        g_tft.print(": ");
+        g_tft.print(ssid);
+        g_tft.print(" ");
+        g_tft.print(rssi);
+        g_tft.println("dB");
     }
 
-    tft.setTextSize(1);
-    tft.setTextColor(ILI9341_YELLOW, ILI9341_BLACK);
-    tft.setCursor(0, 220);
-    tft.print("Total networks: ");
-    tft.print(n);
-    tft.setTextColor(ILI9341_GREEN, ILI9341_BLACK);
+    g_tft.setTextSize(1);
+    g_tft.setTextColor(ILI9341_YELLOW, ILI9341_BLACK);
+    g_tft.setCursor(0, 220);
+    g_tft.print("Numero total de redes: ");
+    g_tft.print(numero_redes_detectadas);
+    g_tft.setTextColor(ILI9341_GREEN, ILI9341_BLACK);
 }
 
 void inicializarModoEscaner() {
-    tft.fillScreen(ILI9341_BLACK);
-    tft.setTextColor(ILI9341_GREEN, ILI9341_BLACK);
-    tft.setTextSize(2);
-    tft.setCursor(0, 0);
-    tft.println("WiFi Scanner");
-    tft.setTextSize(1);
-    tft.println("Showing top networks...");
-    tft.println("");
+    g_tft.fillScreen(ILI9341_BLACK);
+    g_tft.setTextColor(ILI9341_GREEN, ILI9341_BLACK);
+    g_tft.setTextSize(2);
+    g_tft.setCursor(0, 0);
+    g_tft.println("Escaner de redes WiFi");
+    g_tft.setTextSize(1);
+    g_tft.println("Mostrando las primeras redes...");
+    g_tft.println("");
 }

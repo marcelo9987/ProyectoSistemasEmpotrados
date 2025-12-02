@@ -15,96 +15,110 @@
      along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include <WiFi.h>
-#include <SPI.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_ILI9341.h>
+#include <SPI.h>
+#include <WiFi.h>
 #include <driver/rtc_io.h>
 #include "cliente_tcp.h"
-#include "wifi_scanner.h"
-#include "leds.h"
 #include "constantes.h"
+#include "leds.h"
+#include "wifi_scanner.h"
 
 
 
 
-Adafruit_ILI9341 tft(TFT_CS, TFT_DC, TFT_RST);
-
-const char* ssid = "MiFibra-D160";
-const char* password = "S5hSqhYQ";
-IPAddress staticIP(192, 168, 1, 248);
-IPAddress gateway(192, 168, 1, 1);
-IPAddress subnet(255, 255, 255, 0);
+Adafruit_ILI9341 g_tft(TFT_CS, TFT_DC, TFT_RST);
 
 typedef enum
 {
     MODO_CLIENTE_TCP, MODO_ESCANER_WIFI, MODO_REPOSO
 }ModoOperacion;
 
-volatile ModoOperacion modoActual = MODO_ESCANER_WIFI;
-
-
-volatile EstadoTransmision estadoTransmision = HABILITADA;
-volatile bool lecturaPermitida = true;
-
-volatile long ultimaLecturaLlave = 0;
-
-
-void conectarWifi()
+typedef enum
 {
+    HABILITADA=0, PROCESANDO=1, BLOQUEADA=-1
+} EstadoTransmision;
+
+
+typedef struct
+{
+    volatile ModoOperacion modoActual;
+    volatile EstadoTransmision estadoTransmision;
+    volatile bool lecturaPermitida;
+    volatile long ultimaLecturaLlave;
+}Config;
+
+Config g_configuracion=
+    {
+    .modoActual = MODO_ESCANER_WIFI,
+    .estadoTransmision = HABILITADA,
+    .lecturaPermitida = true,
+    .ultimaLecturaLlave = 0
+};
+
+
+void conectar_wifi()
+{
+    const char* ssid = "MiFibra-D160";
+    const char* password = "S5hSqhYQ";
+    IPAddress staticIp(192, 168, 1, 248);
+    IPAddress gateway(192, 168, 1, 1);
+    IPAddress subnet(255, 255, 255, 0);
+
     Serial.println("Configurando WiFi...");
     WiFi.mode(WIFI_STA);
-    WiFi.config(staticIP, gateway, subnet);
+    WiFi.config(staticIp, gateway, subnet);
     WiFi.begin(ssid, password);
 
-    tft.setTextColor(ILI9341_YELLOW, ILI9341_BLACK);
-    tft.setCursor(0, 0);
-    tft.setTextSize(2);
-    tft.print("Conectando...");
+    g_tft.setTextColor(ILI9341_YELLOW, ILI9341_BLACK);
+    g_tft.setCursor(0, 0);
+    g_tft.setTextSize(2);
+    g_tft.print("Conectando...");
     cambiarSituacionLeds(CONEXION_NO_ESTABLECIDA);
     
 
     while (WiFi.status() != WL_CONNECTED){}
 
-    tft.fillScreen(ILI9341_BLACK);
+    g_tft.fillScreen(ILI9341_BLACK);
     Serial.println("\nWiFi conectada!");
     Serial.print("IP obtenida: ");
     Serial.println(WiFi.localIP());
     cambiarSituacionLeds(CONEXION_ESTABLECIDA);
 }
 
-void _inicializar_pines()
+void inicializar_pines()
 {
-    pinMode(PIN_NO_CONECTADO, OUTPUT);
-    pinMode(PIN_CONECTADO, OUTPUT);
-    pinMode(PIN_ESTADO_TRANSMISION, OUTPUT);
+    pinMode(PIN_LED_NO_CONECTADO, OUTPUT);
+    pinMode(PIN_LED_CONECTADO, OUTPUT);
+    pinMode(PIN_LED_ESTADO_TRANSMISION, OUTPUT);
     pinMode(PIN_LLAVE, INPUT_PULLUP);
-    pinMode(PIN_DESPERTAR, INPUT_PULLDOWN);
-    pinMode(PIN_DORMIR, INPUT_PULLDOWN);
+    pinMode(PIN_BOTON_DESPERTAR, INPUT_PULLDOWN);
+    pinMode(PIN_BOTON_DORMIR, INPUT_PULLDOWN);
 }
 
-void IRAM_ATTR _dormir()
+void IRAM_ATTR dormir()
 {
-    modoActual=MODO_REPOSO;
+    g_configuracion.modoActual=MODO_REPOSO;
 }
 
 
-void IRAM_ATTR _llave_girada()
+void IRAM_ATTR llave_girada()
 {
-    if(estadoTransmision==PROCESANDO)
+    if(g_configuracion.estadoTransmision==PROCESANDO)
     {
         return;
     }
 
-    Serial.printf("Estado transmision: %i\n",estadoTransmision);
-    
+    Serial.printf("Estado transmision: %i\n",g_configuracion.estadoTransmision);
+
     const int lecturaActual = millis();
-    if((lecturaActual-ultimaLecturaLlave)>=K_PERIODO_NO_LLAVE)
+    if((lecturaActual-g_configuracion.ultimaLecturaLlave)>=K_PERIODO_NO_LLAVE)
     {
-        ultimaLecturaLlave=lecturaActual;
+        g_configuracion.ultimaLecturaLlave=lecturaActual;
         Serial.printf("Activando transmision\n");
-        estadoTransmision = PROCESANDO;
-        modoActual = MODO_CLIENTE_TCP;
+        g_configuracion.estadoTransmision = PROCESANDO;
+        g_configuracion.modoActual = MODO_CLIENTE_TCP;
         return;
     }
 
@@ -112,9 +126,9 @@ void IRAM_ATTR _llave_girada()
 
 }
 
-void IRAM_ATTR _timer_escaneo()
+void IRAM_ATTR timer_escaneo()
 {
-    lecturaPermitida = true;
+    g_configuracion.lecturaPermitida = true;
 }
 
 
@@ -123,30 +137,30 @@ void setup()
 {
     Serial.begin(115200);
 
-    _inicializar_pines();
+    inicializar_pines();
 
-    esp_sleep_enable_ext0_wakeup(PIN_DESPERTAR,1);
-    rtc_gpio_pulldown_en(PIN_DESPERTAR);
-    rtc_gpio_pullup_dis(PIN_DESPERTAR);
+    esp_sleep_enable_ext0_wakeup(PIN_BOTON_DESPERTAR,1);
+    rtc_gpio_pulldown_en(PIN_BOTON_DESPERTAR);
+    rtc_gpio_pullup_dis(PIN_BOTON_DESPERTAR);
 
-    attachInterrupt(digitalPinToInterrupt(PIN_LLAVE), _llave_girada, RISING); 
-    attachInterrupt(digitalPinToInterrupt(PIN_DORMIR), _dormir, RISING); 
+    attachInterrupt(digitalPinToInterrupt(PIN_LLAVE), llave_girada, RISING);
+    attachInterrupt(digitalPinToInterrupt(PIN_BOTON_DORMIR), dormir, RISING);
 
 
     cambiarSituacionLeds(CONEXION_NO_ESTABLECIDA);
 
     SPI.begin(SPI_SCK, SPI_MISO, SPI_MOSI);
-    tft.begin();
-    tft.setRotation(1);
-    tft.fillScreen(ILI9341_BLACK);
+    g_tft.begin();
+    g_tft.setRotation(1);
+    g_tft.fillScreen(ILI9341_BLACK);
 
-    conectarWifi();
+    conectar_wifi();
     inicializarModoEscaner();
 
 
     hw_timer_t *timer = NULL;
     timer = timerBegin(1000000); 
-    timerAttachInterrupt(timer, &_timer_escaneo);
+    timerAttachInterrupt(timer, &timer_escaneo);
     timerAlarm(timer, K_INTERVALO_ESCANEO, true,0); 
 
 
@@ -155,17 +169,17 @@ void setup()
 void loop()
 {
 
-    if (modoActual == MODO_ESCANER_WIFI)
+    if (g_configuracion.modoActual == MODO_ESCANER_WIFI)
     {
         
-        if (lecturaPermitida)
+        if (g_configuracion.lecturaPermitida)
         {
             inicializarModoEscaner();
-            scanAndDisplay();
-            lecturaPermitida = false;
+            escanearYmostrar();
+            g_configuracion.lecturaPermitida = false;
         }
     }
-    if (modoActual == MODO_CLIENTE_TCP)
+    if (g_configuracion.modoActual == MODO_CLIENTE_TCP)
     {
         inicializarModoClienteTCP();
         Serial.println("\n*** CAMBIO DE MODO: Cliente TCP ***");
@@ -179,11 +193,11 @@ void loop()
             cambiarSituacionLeds(CONEXION_NO_ESTABLECIDA);
         }
 
-        estadoTransmision = HABILITADA;
+        g_configuracion.estadoTransmision = HABILITADA;
                     
-        modoActual = MODO_ESCANER_WIFI;
+        g_configuracion.modoActual = MODO_ESCANER_WIFI;
     }
-    if (modoActual == MODO_REPOSO)
+    if (g_configuracion.modoActual == MODO_REPOSO)
     {
         esp_deep_sleep_start();
     }

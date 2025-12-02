@@ -23,11 +23,11 @@ Copyright (C) 2025. Marcelo Fort Muñoz y Víctor Arrollo Marquez
 
 
 #include "wifi_scanner.h"
-extern Adafruit_ILI9341 tft;
+extern Adafruit_ILI9341 g_tft;
 
 int socketConexion = -1;
-unsigned long ultimoEnvio = 0;
-int contadorEnvios = 0;
+unsigned long g_ultimoEnvio = 0;
+int g_contadorEnvios = 0;
 
 void conectarServidor(const char* ip, uint16_t puerto) {
     Serial.printf("Conectándose al servidor %s:%d...\n", ip, puerto);
@@ -37,13 +37,13 @@ void conectarServidor(const char* ip, uint16_t puerto) {
     if (socketConexion < 0) {
         Serial.println("ERRO: No fue posible conectarse al servidor.");
         cambiarSituacionLeds(CONEXION_NO_ESTABLECIDA);
-        tft.fillScreen(ILI9341_RED);
-        tft.setCursor(0, 0);
-        tft.setTextColor(ILI9341_WHITE, ILI9341_RED);
-        tft.setTextSize(2);
-        tft.println("ERROR TCP");
-        tft.setTextSize(1);
-        tft.println("No conecta");
+        g_tft.fillScreen(ILI9341_RED);
+        g_tft.setCursor(0, 0);
+        g_tft.setTextColor(ILI9341_WHITE, ILI9341_RED);
+        g_tft.setTextSize(2);
+        g_tft.println("ERROR TCP");
+        g_tft.setTextSize(1);
+        g_tft.println("No conecta");
     } else {
         Serial.println("Conectado al servidor!");
         cambiarSituacionLeds(CONEXION_ESTABLECIDA);
@@ -60,10 +60,10 @@ void enviarRedesAlServidor() {
     char buffer[K_MAX_TAMANHO_LINEA];
     int len = snprintf(buffer, K_MAX_TAMANHO_LINEA, "Redes WiFi encontradas:\n");
 
-    for (int i = 0; i < numRedesDetectadas && len < K_MAX_TAMANHO_LINEA - 50; i++) {
-        if (strlen(redesDetectadas[i].ssid) == 0) continue; // ignorar SSID vacíos
+    for (int i = 0; i < g_numRedesDetectadas && len < K_MAX_TAMANHO_LINEA - 50; i++) {
+        if (strlen(g_redesDetectadas[i].ssid) == 0) continue; // ignorar SSID vacíos
         len += snprintf(buffer + len, K_MAX_TAMANHO_LINEA - len,
-                        "%d: %s (%d dBm)\n", i, redesDetectadas[i].ssid, redesDetectadas[i].rssi);
+                        "%d: %s (%d dBm)\n", i, g_redesDetectadas[i].ssid, g_redesDetectadas[i].rssi);
     }
 
     if (enviar_datos(socketConexion, buffer, len) < 0) {
@@ -75,19 +75,19 @@ void enviarRedesAlServidor() {
     }
 
     Serial.printf("Enviado:\n%s", buffer);
-    contadorEnvios++;
+    g_contadorEnvios++;
 }
 
 void inicializarModoClienteTCP() {
-    tft.fillScreen(ILI9341_BLACK);
-    tft.setTextColor(ILI9341_WHITE, ILI9341_BLACK);
-    tft.setTextSize(2);
-    tft.setCursor(0, 0);
-    tft.println("MODO CLIENTE TCP");
-    tft.setTextSize(1);
-    tft.println("Conectándose al servidor...");
+    g_tft.fillScreen(ILI9341_BLACK);
+    g_tft.setTextColor(ILI9341_WHITE, ILI9341_BLACK);
+    g_tft.setTextSize(2);
+    g_tft.setCursor(0, 0);
+    g_tft.println("MODO CLIENTE TCP");
+    g_tft.setTextSize(1);
+    g_tft.println("Conectándose al servidor...");
 
     conectarServidor(DIRECCION_IP_SERVIDOR, 1234);
-    contadorEnvios = 0;
-    ultimoEnvio = millis();
+    g_contadorEnvios = 0;
+    g_ultimoEnvio = millis();
 }

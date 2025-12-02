@@ -20,13 +20,9 @@
 #include <Arduino.h>
 #include "conectividad_cliente_tcp.h"
 
-#define K_MAX_TAMANHO_LINEA 1000
-#define K_NUM_ENVIOS 5
-#define K_TIEMPO_ESPERA_ENTRE_ENVIOS 2000
-
 extern int socketConexion;
-extern unsigned long ultimoEnvio;
-extern int contadorEnvios;
+extern unsigned long g_ultimoEnvio;
+extern int g_contadorEnvios;
 
 void conectarServidor(const char* ip, uint16_t puerto);
 void enviarRedesAlServidor();

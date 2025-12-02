@@ -13,4 +13,5 @@ add_executable(main
         conectividad_cliente_tcp.cpp
         conectividad_cliente_tcp.h
         wifi_scanner.cpp
-        wifi_scanner.h)
+        wifi_scanner.h
+        tipos.h)

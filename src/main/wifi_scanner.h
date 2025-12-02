@@ -21,17 +21,18 @@ Copyright (C) 2025. Marcelo Fort Muñoz y Víctor Arrollo Marquez
 #include <Arduino.h>
 #include <WiFi.h>
 
-#define MAX_DISPLAY 15
-#define MAX_RED_SSID 32
-#define MAX_REDES 50
+#include "tipos.h"
 
-typedef struct  {
-    char ssid[MAX_RED_SSID];
-    int rssi;
-}Red;
 
-extern Red redesDetectadas[MAX_REDES];
-extern int numRedesDetectadas;
+extern Red g_redesDetectadas[K_MAX_REDES];
+extern int g_numRedesDetectadas;
 
-void scanAndDisplay();
+/**
+ * @brief Escanea las redes WiFi disponibles y las muestra en la pantalla TFT.
+ */
+void escanearYmostrar();
+
+/**
+ * @brief Dibuja la pantalla inicial del modo escáner de WiFi en la TFT.
+ */
 void inicializarModoEscaner();

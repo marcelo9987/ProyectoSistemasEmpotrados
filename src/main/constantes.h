@@ -18,33 +18,40 @@ Copyright (C) 2025. Marcelo Fort Muñoz y Víctor Arrollo Marquez
 
 #pragma once
 
-typedef enum
-{
-    HABILITADA=0, PROCESANDO=1, BLOQUEADA=-1
-} EstadoTransmision;
-
+// --- Tiempos ---
 #define K_PERIODO_NO_LLAVE 400
 #define K_INTERVALO_ESCANEO 15000000
 
+// --- Conectividad ----
+#define DIRECCION_IP_SERVIDOR "192.168.1.19"
+#define K_MAX_REDES 50
+#define K_MAX_TAMANHO_LINEA 1000
+#define K_NUM_ENVIOS 5
+#define K_TIEMPO_ESPERA_ENTRE_ENVIOS 2000
+
 // --- Pines ---
-#define PIN_NO_CONECTADO 36
-#define PIN_CONECTADO 37
-#define PIN_ESTADO_TRANSMISION 38
+#define PIN_LED_NO_CONECTADO 36
+#define PIN_LED_CONECTADO 37
+#define PIN_LED_ESTADO_TRANSMISION 38
+
 #define PIN_LLAVE 21
-#define PIN_BOTON 46
-#define PIN_DESPERTAR GPIO_NUM_2
-#define PIN_DORMIR 7 
+// #define PIN_BOTON 46
+#define PIN_BOTON_DESPERTAR GPIO_NUM_2
+#define PIN_BOTON_DORMIR 7
 
 // --- SPI ---
 #define SPI_MOSI 11
 #define SPI_MISO 13
 #define SPI_SCK 12
 
-// TFT
+// TFT (Pines de control)
 #define TFT_CS 10
 #define TFT_DC 8
 #define TFT_RST 4
+// TFT (misc)
+#define K_MAX_DISPLAY 15
+#define K_MAX_RED_SSID 32
 
 
-// --- Conectividad ----
-#define DIRECCION_IP_SERVIDOR "192.168.1.19"
+
+

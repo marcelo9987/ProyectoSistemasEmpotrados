@@ -14,30 +14,17 @@ Copyright (C) 2025. Marcelo Fort Muñoz y Víctor Arrollo Marquez
      You should have received a copy of the GNU General Public License
      along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-*/
-
-#include "leds.h"
-#include <Arduino.h>
+ */
+// En este archivo ponemos los tipos de datos usados por varios .c
+#pragma once
 #include "constantes.h"
 
-void cambiarSituacionLeds(const EstadoLeds conectado)
+typedef struct  {
+    char ssid[K_MAX_RED_SSID];
+    int rssi;
+}Red;
+
+typedef enum
 {
-    switch (conectado)
-    {
-    case TRANSMISION_EN_CURSO:
-        digitalWrite(PIN_LED_ESTADO_TRANSMISION,HIGH);
-        break;
-    case CONEXION_ESTABLECIDA:
-        digitalWrite(PIN_LED_CONECTADO, HIGH);
-        digitalWrite(PIN_LED_NO_CONECTADO, LOW);
-        digitalWrite(PIN_LED_ESTADO_TRANSMISION, LOW);
-        break;
-    case CONEXION_NO_ESTABLECIDA:
-        digitalWrite(PIN_LED_CONECTADO, LOW);
-        digitalWrite(PIN_LED_NO_CONECTADO, HIGH);
-        digitalWrite(PIN_LED_ESTADO_TRANSMISION, LOW);
-        break;
-    default:
-        break;
-    }
-}
+    CONEXION_ESTABLECIDA, CONEXION_NO_ESTABLECIDA, TRANSMISION_EN_CURSO
+}EstadoLeds;

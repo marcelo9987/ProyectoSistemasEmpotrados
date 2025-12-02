@@ -18,7 +18,9 @@ Copyright (C) 2025. Marcelo Fort Muñoz y Víctor Arrollo Marquez
 
 #include "cliente_tcp.h"
 #include "leds.h"
+#include "constantes.h"
 #include <Adafruit_ILI9341.h>
+
 
 #include "wifi_scanner.h"
 extern Adafruit_ILI9341 tft;

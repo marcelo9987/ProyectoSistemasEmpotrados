@@ -26,33 +26,25 @@
 
 
 
-// --- SPI ---
-#define SPI_MOSI 11
-#define SPI_MISO 13
-#define SPI_SCK 12
 
-// TFT
-#define TFT_CS 10
-#define TFT_DC 8
-#define TFT_RST 4
 Adafruit_ILI9341 tft(TFT_CS, TFT_DC, TFT_RST);
 
-// --- WiFi ---
 const char* ssid = "MiFibra-D160";
 const char* password = "S5hSqhYQ";
 IPAddress staticIP(192, 168, 1, 248);
 IPAddress gateway(192, 168, 1, 1);
 IPAddress subnet(255, 255, 255, 0);
 
-// --- Modo de operación ---
 typedef enum
 {
     MODO_CLIENTE_TCP, MODO_ESCANER_WIFI
 }ModoOperacion;
 
+volatile ModoOperacion modoActual = MODO_ESCANER_WIFI;
 
-ModoOperacion modoActual = MODO_ESCANER_WIFI;
 
+volatile int ultimaLecturaLlave = 0; 
+volatile EstadoTransmision estadoTransmision = HABILITADA;
 
 
 void conectarWifi()
@@ -61,18 +53,19 @@ void conectarWifi()
     WiFi.mode(WIFI_STA);
     WiFi.config(staticIP, gateway, subnet);
     WiFi.begin(ssid, password);
-    cambiarSituacionLeds(CONEXION_NO_ESTABLECIDA);
 
     tft.setTextColor(ILI9341_YELLOW, ILI9341_BLACK);
     tft.setCursor(0, 0);
     tft.setTextSize(2);
     tft.print("Conectando...");
+    cambiarSituacionLeds(CONEXION_NO_ESTABLECIDA);
+    
 
     while (WiFi.status() != WL_CONNECTED){}
 
     tft.fillScreen(ILI9341_BLACK);
     Serial.println("\nWiFi conectada!");
-    Serial.print("IP obtida: ");
+    Serial.print("IP obtenida: ");
     Serial.println(WiFi.localIP());
     cambiarSituacionLeds(CONEXION_ESTABLECIDA);
 }
@@ -82,13 +75,40 @@ void _inicializar_pines()
     pinMode(PIN_NO_CONECTADO, OUTPUT);
     pinMode(PIN_CONECTADO, OUTPUT);
     pinMode(PIN_ESTADO_TRANSMISION, OUTPUT);
+    pinMode(PIN_LLAVE, INPUT_PULLUP);
 }
+
+void IRAM_ATTR _llave_girada()
+{
+    if(estadoTransmision==PROCESANDO)
+    {
+        return;
+    }
+
+    Serial.printf("Estado transmision: %i\n",estadoTransmision);
+    
+    const int lecturaActual = millis();
+    if((lecturaActual-ultimaLecturaLlave)>=K_PERIODO_NO_LLAVE)
+    {
+        ultimaLecturaLlave=lecturaActual;
+        Serial.printf("Activando transmision\n");
+        estadoTransmision = PROCESANDO;
+        modoActual = MODO_CLIENTE_TCP;
+        return;
+    }
+
+     Serial.printf("No activando transmision\n");
+
+}
+unsigned long ultimoEscaneo = 0;
 
 void setup()
 {
     Serial.begin(115200);
 
     _inicializar_pines();
+    
+    attachInterrupt(digitalPinToInterrupt(PIN_LLAVE), _llave_girada, RISING); // Configure the interrupt
 
     cambiarSituacionLeds(CONEXION_NO_ESTABLECIDA);
 
@@ -99,54 +119,39 @@ void setup()
 
     conectarWifi();
     inicializarModoEscaner();
+
+    ultimoEscaneo = millis();
 }
 
 void loop()
 {
-    static unsigned long ultimoCambioModo = 0;
-    const long INTERVALO_CAMBIO_MODO = 30000;
-
-    static unsigned long ultimoEscaneo = 0;
-    const long INTERVALO_ESCANEO = 5000;
-
-    // Cambiar de modo cada 30s
-    if (millis() - ultimoCambioModo >= INTERVALO_CAMBIO_MODO)
-    {
-        ultimoCambioModo = millis();
-        if (modoActual == MODO_CLIENTE_TCP)
-        {
-            if (socketConexion != -1)
-            {
-                desconectar_servidor(socketConexion);
-                socketConexion = -1;
-                cambiarSituacionLeds(CONEXION_NO_ESTABLECIDA);
-            }
-            modoActual = MODO_ESCANER_WIFI;
-            inicializarModoEscaner();
-            Serial.println("\n*** CAMBIO DE MODO: Escáner WiFi ***");
-        }
-        else
-        {
-            modoActual = MODO_CLIENTE_TCP;
-            inicializarModoClienteTCP();
-            Serial.println("\n*** CAMBIO DE MODO: Cliente TCP ***");
-        }
-    }
 
     if (modoActual == MODO_ESCANER_WIFI)
     {
-        if (millis() - ultimoEscaneo >= INTERVALO_ESCANEO)
+        
+        if ((millis() - ultimoEscaneo) >= K_INTERVALO_ESCANEO)
         {
+            inicializarModoEscaner();
             ultimoEscaneo = millis();
             scanAndDisplay();
         }
     }
-    else if (modoActual == MODO_CLIENTE_TCP)
+    if (modoActual == MODO_CLIENTE_TCP)
     {
-        if (millis() - ultimoEnvio >= K_TIEMPO_ESPERA_ENTRE_ENVIOS)
+        inicializarModoClienteTCP();
+        Serial.println("\n*** CAMBIO DE MODO: Cliente TCP ***");
+        
+        enviarRedesAlServidor();
+
+        if (socketConexion != -1)
         {
-            enviarRedesAlServidor();
-            ultimoEnvio = millis();
+            desconectar_servidor(socketConexion);
+            socketConexion = -1;
+            cambiarSituacionLeds(CONEXION_NO_ESTABLECIDA);
         }
+
+        estadoTransmision = HABILITADA;
+                    
+        modoActual = MODO_ESCANER_WIFI;
     }
 }

@@ -18,10 +18,30 @@ Copyright (C) 2025. Marcelo Fort Muñoz y Víctor Arrollo Marquez
 
 #pragma once
 
+typedef enum
+{
+    HABILITADA=0, PROCESANDO=1, BLOQUEADA=-1
+} EstadoTransmision;
+
+#define K_PERIODO_NO_LLAVE 400
+#define K_INTERVALO_ESCANEO 10000
+
 // --- Pines ---
 #define PIN_NO_CONECTADO 36
 #define PIN_CONECTADO 37
 #define PIN_ESTADO_TRANSMISION 38
+#define PIN_LLAVE 21
+#define PIN_BOTON 46 
+
+// --- SPI ---
+#define SPI_MOSI 11
+#define SPI_MISO 13
+#define SPI_SCK 12
+
+// TFT
+#define TFT_CS 10
+#define TFT_DC 8
+#define TFT_RST 4
 
 // --- Conectividad ----
 #define DIRECCION_IP_SERVIDOR "192.168.1.19"

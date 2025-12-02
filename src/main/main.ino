@@ -77,17 +77,18 @@ void conectarWifi()
     cambiarSituacionLeds(CONEXION_ESTABLECIDA);
 }
 
-void inicializar_pines()
+void _inicializar_pines()
 {
     pinMode(PIN_NO_CONECTADO, OUTPUT);
     pinMode(PIN_CONECTADO, OUTPUT);
+    pinMode(PIN_ESTADO_TRANSMISION, OUTPUT);
 }
 
 void setup()
 {
     Serial.begin(115200);
 
-    inicializar_pines();
+    _inicializar_pines();
 
     cambiarSituacionLeds(CONEXION_NO_ESTABLECIDA);
 

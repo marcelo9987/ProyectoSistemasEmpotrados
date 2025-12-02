@@ -22,12 +22,10 @@ Copyright (C) 2025. Marcelo Fort Muñoz y Víctor Arrollo Marquez
 
 void cambiarSituacionLeds(EstadoLeds conectado)
 {
-    // digitalWrite(pinConectado, conectado ? HIGH : LOW);
-    // digitalWrite(pinNoConectado, conectado ? LOW : HIGH);
     switch (conectado)
     {
     case TRANSMISION_EN_CURSO:
-        // digitalWrite(PIN_ESTADO_TRANSMISION,HIGH);
+        digitalWrite(PIN_ESTADO_TRANSMISION,HIGH);
         break;
     case CONEXION_ESTABLECIDA:
         digitalWrite(PIN_CONECTADO, HIGH);

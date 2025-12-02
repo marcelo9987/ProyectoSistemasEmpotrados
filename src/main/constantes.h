@@ -22,3 +22,6 @@ Copyright (C) 2025. Marcelo Fort Muñoz y Víctor Arrollo Marquez
 #define PIN_NO_CONECTADO 36
 #define PIN_CONECTADO 37
 #define PIN_ESTADO_TRANSMISION 38
+
+// --- Conectividad ----
+#define DIRECCION_IP_SERVIDOR "192.168.1.19"

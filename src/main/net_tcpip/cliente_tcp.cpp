@@ -27,30 +27,30 @@ int socketConexion = -1;
 unsigned long ultimoEnvio = 0;
 int contadorEnvios = 0;
 
-void conectarServidor(const char* ip, uint16_t porto) {
-    Serial.printf("Conectando ao servidor %s:%d...\n", ip, porto);
+void conectarServidor(const char* ip, uint16_t puerto) {
+    Serial.printf("Conectándose al servidor %s:%d...\n", ip, puerto);
 
-    socketConexion = conectar_servidor(ip, porto);
+    socketConexion = conectar_servidor(ip, puerto);
 
     if (socketConexion < 0) {
-        Serial.println("ERRO: Non foi posible conectar ao servidor.");
+        Serial.println("ERRO: No fue posible conectarse al servidor.");
         cambiarSituacionLeds(CONEXION_NO_ESTABLECIDA);
         tft.fillScreen(ILI9341_RED);
         tft.setCursor(0, 0);
         tft.setTextColor(ILI9341_WHITE, ILI9341_RED);
         tft.setTextSize(2);
-        tft.println("ERRO TCP");
+        tft.println("ERROR TCP");
         tft.setTextSize(1);
-        tft.println("Non conecta");
+        tft.println("No conecta");
     } else {
-        Serial.println("Conectado ao servidor!");
+        Serial.println("Conectado al servidor!");
         cambiarSituacionLeds(CONEXION_ESTABLECIDA);
     }
 }
 
 void enviarRedesAlServidor() {
     if (socketConexion < 0) {
-        Serial.println("Erro: Non hai conexión activa.");
+        Serial.println("Error: No hay conexión activa.");
         conectarServidor("192.168.1.19", 1234);
         if (socketConexion < 0) return;
     }
@@ -65,7 +65,7 @@ void enviarRedesAlServidor() {
     }
 
     if (enviar_datos(socketConexion, buffer, len) < 0) {
-        Serial.println("ERRO enviando datos. Pechando conexión.");
+        Serial.println("ERROR enviando datos. Cerrando conexión.");
         desconectar_servidor(socketConexion);
         socketConexion = -1;
         cambiarSituacionLeds(CONEXION_NO_ESTABLECIDA);
@@ -83,9 +83,9 @@ void inicializarModoClienteTCP() {
     tft.setCursor(0, 0);
     tft.println("MODO CLIENTE TCP");
     tft.setTextSize(1);
-    tft.println("Conectando ao servidor...");
+    tft.println("Conectándose al servidor...");
 
-    conectarServidor("192.168.1.19", 1234);
+    conectarServidor(DIRECCION_IP_SERVIDOR, 1234);
     contadorEnvios = 0;
     ultimoEnvio = millis();
 }

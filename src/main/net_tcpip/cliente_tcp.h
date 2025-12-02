@@ -1,5 +1,5 @@
 /*
-Copyright (C) 2025. Marcelo Fort Muñoz y Víctor Arrollo Marquez
+    Copyright (C) 2025. Marcelo Fort Muñoz y Víctor Arrollo Marquez
 
      This program is free software: you can redistribute it and/or modify
      it under the terms of the GNU General Public License as published by
@@ -13,25 +13,23 @@ Copyright (C) 2025. Marcelo Fort Muñoz y Víctor Arrollo Marquez
 
      You should have received a copy of the GNU General Public License
      along with this program.  If not, see <https://www.gnu.org/licenses/>.
-
  */
 
 #pragma once
 
 #include <Arduino.h>
-#include <WiFi.h>
+#include "conectividad_cliente_tcp.h"
 
-#define MAX_DISPLAY 15
-#define MAX_RED_SSID 32
-#define MAX_REDES 50
+#define K_MAX_TAMANHO_LINEA 1000
+#define K_NUM_ENVIOS 5
+#define K_TIEMPO_ESPERA_ENTRE_ENVIOS 2000
 
-struct Red {
-    char ssid[MAX_RED_SSID];
-    int rssi;
-};
+extern int socketConexion;
+extern unsigned long ultimoEnvio;
+extern int contadorEnvios;
 
-extern struct Red redesDetectadas[MAX_REDES];
-extern int numRedesDetectadas;
+void conectarServidor(const char* ip, uint16_t puerto);
+void enviarRedesAlServidor();
+void inicializarModoClienteTCP();
 
-void scanAndDisplay();
-void inicializarModoEscaner();
+

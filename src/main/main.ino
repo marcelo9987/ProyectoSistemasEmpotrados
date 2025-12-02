@@ -19,6 +19,7 @@
 #include <SPI.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_ILI9341.h>
+#include <driver/rtc_io.h>
 #include "cliente_tcp.h"
 #include "wifi_scanner.h"
 #include "leds.h"
@@ -37,14 +38,16 @@ IPAddress subnet(255, 255, 255, 0);
 
 typedef enum
 {
-    MODO_CLIENTE_TCP, MODO_ESCANER_WIFI
+    MODO_CLIENTE_TCP, MODO_ESCANER_WIFI, MODO_REPOSO
 }ModoOperacion;
 
 volatile ModoOperacion modoActual = MODO_ESCANER_WIFI;
 
 
-volatile int ultimaLecturaLlave = 0; 
 volatile EstadoTransmision estadoTransmision = HABILITADA;
+volatile bool lecturaPermitida = true;
+
+volatile long ultimaLecturaLlave = 0;
 
 
 void conectarWifi()
@@ -76,7 +79,15 @@ void _inicializar_pines()
     pinMode(PIN_CONECTADO, OUTPUT);
     pinMode(PIN_ESTADO_TRANSMISION, OUTPUT);
     pinMode(PIN_LLAVE, INPUT_PULLUP);
+    pinMode(PIN_DESPERTAR, INPUT_PULLDOWN);
+    pinMode(PIN_DORMIR, INPUT_PULLDOWN);
 }
+
+void IRAM_ATTR _dormir()
+{
+    modoActual=MODO_REPOSO;
+}
+
 
 void IRAM_ATTR _llave_girada()
 {
@@ -100,15 +111,27 @@ void IRAM_ATTR _llave_girada()
      Serial.printf("No activando transmision\n");
 
 }
-unsigned long ultimoEscaneo = 0;
+
+void IRAM_ATTR _timer_escaneo()
+{
+    lecturaPermitida = true;
+}
+
+
 
 void setup()
 {
     Serial.begin(115200);
 
     _inicializar_pines();
-    
-    attachInterrupt(digitalPinToInterrupt(PIN_LLAVE), _llave_girada, RISING); // Configure the interrupt
+
+    esp_sleep_enable_ext0_wakeup(PIN_DESPERTAR,1);
+    rtc_gpio_pulldown_en(PIN_DESPERTAR);
+    rtc_gpio_pullup_dis(PIN_DESPERTAR);
+
+    attachInterrupt(digitalPinToInterrupt(PIN_LLAVE), _llave_girada, RISING); 
+    attachInterrupt(digitalPinToInterrupt(PIN_DORMIR), _dormir, RISING); 
+
 
     cambiarSituacionLeds(CONEXION_NO_ESTABLECIDA);
 
@@ -120,7 +143,13 @@ void setup()
     conectarWifi();
     inicializarModoEscaner();
 
-    ultimoEscaneo = millis();
+
+    hw_timer_t *timer = NULL;
+    timer = timerBegin(1000000); 
+    timerAttachInterrupt(timer, &_timer_escaneo);
+    timerAlarm(timer, K_INTERVALO_ESCANEO, true,0); 
+
+
 }
 
 void loop()
@@ -129,11 +158,11 @@ void loop()
     if (modoActual == MODO_ESCANER_WIFI)
     {
         
-        if ((millis() - ultimoEscaneo) >= K_INTERVALO_ESCANEO)
+        if (lecturaPermitida)
         {
             inicializarModoEscaner();
-            ultimoEscaneo = millis();
             scanAndDisplay();
+            lecturaPermitida = false;
         }
     }
     if (modoActual == MODO_CLIENTE_TCP)
@@ -153,5 +182,9 @@ void loop()
         estadoTransmision = HABILITADA;
                     
         modoActual = MODO_ESCANER_WIFI;
+    }
+    if (modoActual == MODO_REPOSO)
+    {
+        esp_deep_sleep_start();
     }
 }

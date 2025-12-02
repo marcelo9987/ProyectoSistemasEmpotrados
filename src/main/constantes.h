@@ -24,14 +24,16 @@ typedef enum
 } EstadoTransmision;
 
 #define K_PERIODO_NO_LLAVE 400
-#define K_INTERVALO_ESCANEO 10000
+#define K_INTERVALO_ESCANEO 15000000
 
 // --- Pines ---
 #define PIN_NO_CONECTADO 36
 #define PIN_CONECTADO 37
 #define PIN_ESTADO_TRANSMISION 38
 #define PIN_LLAVE 21
-#define PIN_BOTON 46 
+#define PIN_BOTON 46
+#define PIN_DESPERTAR GPIO_NUM_2
+#define PIN_DORMIR 7 
 
 // --- SPI ---
 #define SPI_MOSI 11
@@ -42,6 +44,7 @@ typedef enum
 #define TFT_CS 10
 #define TFT_DC 8
 #define TFT_RST 4
+
 
 // --- Conectividad ----
 #define DIRECCION_IP_SERVIDOR "192.168.1.19"

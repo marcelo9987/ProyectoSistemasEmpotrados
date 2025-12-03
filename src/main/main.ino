@@ -201,7 +201,7 @@ void loop()
         g_configuracion.estadoTransmision = HABILITADA;
                     
         g_configuracion.modoActual = MODO_ESCANER_WIFI;
-        primera_iter_bucle_scan=false;
+        primera_iter_bucle_scan=true;
     }
     if (g_configuracion.modoActual == MODO_REPOSO)
     {

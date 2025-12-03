@@ -51,10 +51,15 @@ void conectarServidor(const char* ip, uint16_t puerto) {
 }
 
 void enviarRedesAlServidor() {
+
+	noInterrupts();
     if (socketConexion < 0) {
         Serial.println("Error: No hay conexión activa.");
         conectarServidor("192.168.1.19", 1234);
-        if (socketConexion < 0) return;
+        if (socketConexion < 0)
+		{
+			return;
+		}
     }
 
     char buffer[K_MAX_TAMANHO_LINEA];
@@ -73,6 +78,8 @@ void enviarRedesAlServidor() {
         cambiarSituacionLeds(CONEXION_NO_ESTABLECIDA);
         return;
     }
+
+    interrupts();
 
     Serial.printf("Enviado:\n%s", buffer);
     g_contadorEnvios++;

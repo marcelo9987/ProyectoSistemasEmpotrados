@@ -19,7 +19,7 @@ Copyright (C) 2025. Marcelo Fort Muñoz y Víctor Arrollo Marquez
 #pragma once
 
 // --- Tiempos ---
-#define K_PERIODO_NO_LLAVE 400
+#define K_PERIODO_NO_LLAVE 1000
 #define K_INTERVALO_ESCANEO 15000000
 
 // --- Conectividad ----

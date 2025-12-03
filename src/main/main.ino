@@ -49,7 +49,7 @@ typedef struct
     volatile long ultimaLecturaLlave;
 }Config;
 
-Config g_configuracion=
+volatile Config g_configuracion=
     {
     .modoActual = MODO_ESCANER_WIFI,
     .estadoTransmision = HABILITADA,
@@ -107,12 +107,13 @@ void IRAM_ATTR llave_girada()
 {
     if(g_configuracion.estadoTransmision==PROCESANDO)
     {
+        Serial.println("Aún procesando...");
         return;
     }
 
     Serial.printf("Estado transmision: %i\n",g_configuracion.estadoTransmision);
 
-    const int lecturaActual = millis();
+    const long lecturaActual = millis();
     if((lecturaActual-g_configuracion.ultimaLecturaLlave)>=K_PERIODO_NO_LLAVE)
     {
         g_configuracion.ultimaLecturaLlave=lecturaActual;
@@ -166,21 +167,25 @@ void setup()
 
 }
 
+bool primera_iter_bucle_scan = true;
+
 void loop()
 {
 
     if (g_configuracion.modoActual == MODO_ESCANER_WIFI)
     {
         
-        if (g_configuracion.lecturaPermitida)
+        if (g_configuracion.lecturaPermitida || primera_iter_bucle_scan==true)
         {
             inicializarModoEscaner();
             escanearYmostrar();
             g_configuracion.lecturaPermitida = false;
+            primera_iter_bucle_scan = false;
         }
     }
     if (g_configuracion.modoActual == MODO_CLIENTE_TCP)
     {
+        cambiarSituacionLeds(TRANSMISION_EN_CURSO);
         inicializarModoClienteTCP();
         Serial.println("\n*** CAMBIO DE MODO: Cliente TCP ***");
         
@@ -190,12 +195,13 @@ void loop()
         {
             desconectar_servidor(socketConexion);
             socketConexion = -1;
-            cambiarSituacionLeds(CONEXION_NO_ESTABLECIDA);
+            cambiarSituacionLeds(CONEXION_ESTABLECIDA);
         }
 
         g_configuracion.estadoTransmision = HABILITADA;
                     
         g_configuracion.modoActual = MODO_ESCANER_WIFI;
+        primera_iter_bucle_scan=false;
     }
     if (g_configuracion.modoActual == MODO_REPOSO)
     {

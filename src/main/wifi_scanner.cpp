@@ -58,7 +58,7 @@ void escanearYmostrar() {
         strncpy(g_redesDetectadas[i].ssid, ssid.c_str(), K_MAX_RED_SSID);
         g_redesDetectadas[i].rssi = rssi;
 
-        Serial.printf("%d: %s (%d dBm)\n", i, g_redesDetectadas[i].ssid, rssi);
+//        Serial.printf("%d: %s (%d dBm)\n", i, g_redesDetectadas[i].ssid, rssi);
 
         g_tft.print(i);
         g_tft.print(": ");

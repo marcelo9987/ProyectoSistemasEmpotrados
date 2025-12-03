@@ -71,8 +71,8 @@ void escanearYmostrar() {
     g_tft.setTextSize(1);
     g_tft.setTextColor(ILI9341_YELLOW, ILI9341_BLACK);
     g_tft.setCursor(0, 220);
-    g_tft.print("Numero total de redes: ");
-    g_tft.print(numero_redes_detectadas);
+    // g_tft.print("Numero total de redes: ");
+    // g_tft.print(numero_redes_detectadas);
     g_tft.setTextColor(ILI9341_GREEN, ILI9341_BLACK);
 }
 
